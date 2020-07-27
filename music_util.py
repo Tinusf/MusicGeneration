@@ -1,3 +1,5 @@
+from typing import Tuple
+from collections import Counter
 import numpy as np
 from music21 import *
 import os
@@ -47,6 +49,41 @@ def read_midi(file: str) -> np.ndarray:
 
                 # chord
                 elif isinstance(element, chord.Chord):
+                    # 2.5.9
                     notes.append('.'.join(str(n) for n in element.normalOrder))
 
     return np.array(notes)
+
+
+def get_frequent_notes(notes: np.ndarray) -> list:
+    # Flatten the notes array.
+    notes_1d = [element for note_ in notes for element in note_]
+    # Frequency dictionary.
+    freq = dict(Counter(notes_1d))
+    # Return the notes that have a count of 50 or above.
+    return [note_ for note_, count in freq.items() if count >= 50]
+
+
+def filter_frequent_notes(notes: np.ndarray, frequent_notes: list) -> np.ndarray:
+    return np.array([[_note for _note in one_song if _note in frequent_notes] for one_song in notes])
+
+
+def create_training_dataset(notes: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    This method creates a dataset containing 32 notes as input and a single note as output for those 32 notes.
+    :param notes: Numpy array of notes.
+    :return: X, y dataset.
+    """
+    no_of_timesteps = 32
+    x = []
+    y = []
+
+    for _note in notes:
+        for i in range(0, len(_note) - no_of_timesteps, 1):
+            input_notes = _note[i:i + no_of_timesteps]
+            output_note = _note[i + no_of_timesteps]
+
+            x.append(input_notes)
+            y.append(output_note)
+
+    return np.array(x), np.array(y)

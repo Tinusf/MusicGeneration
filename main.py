@@ -1,33 +1,37 @@
-import os
+import config
 from tensorflow.keras.utils import to_categorical
 from data_util import DataUtil
 import numpy as np
 import music_util
 from sklearn.model_selection import train_test_split
-from model import lstm
-import tensorflow.keras.backend as K
+from models.LSTM import LSTM
+from models.WaveNet import WaveNet
 
 
 def main():
-    arr = music_util.load_all_midi_files()
-    frequent_notes = music_util.get_frequent_notes(arr)
+    notes_array = music_util.load_all_midi_files()
+    frequent_notes = music_util.get_frequent_notes(notes_array)
     n_notes = len(frequent_notes) + 1
-    arr_filtered = music_util.filter_frequent_notes(arr, frequent_notes)
+    if config.FILTER_INFREQUENTLY:
+        notes_array = music_util.filter_frequent_notes(notes_array, frequent_notes)
 
-    x, y = music_util.create_training_dataset(arr_filtered)
+    x, y = music_util.create_training_dataset(notes_array)
     # Because this dataset is a mix of string like "A4" and sequenes like "2-5-9" we need to transform them
     # to indices in order to get numbers.
     dataUtil = DataUtil()
     x, y = dataUtil.transform_data_index(x, y)
-
-    x = x.reshape((x.shape[0], x.shape[1], 1))
-    y = y.reshape((y.shape[0]))
-    x = to_categorical(x, num_classes=n_notes)
-    y = to_categorical(y, num_classes=n_notes)
+    if config.ONE_HOT:
+        x, y = dataUtil.one_hot(x, y, n_notes)
 
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
-    model = lstm(n_notes)
-    model.train(x_train, y_train, epochs=3)
+    if config.WHICH_MODEL == "WaveNet":
+        model = WaveNet(n_notes)
+    elif config.WHICH_MODEL == "LSTM":
+        model = LSTM(n_notes)
+    else:
+        raise ValueError(config.WHICH_MODEL + " is not supported.")
+
+    model.train_if_necessary(x_train, y_train, x_test, y_test)
 
     random_melody = generate_random(model.model, x_test, n_notes)
     random_melody = [dataUtil.index_to_elem[x] for x in random_melody]
@@ -40,14 +44,18 @@ def generate_random(model, x_test, n_classes, no_of_timesteps=32):
     random_music = x_test[ind]
     predictions = []
     for i in range(100):
-        # random_music = random_music.reshape(1, no_of_timesteps)
         prob = model.predict(np.expand_dims(random_music, axis=0)).squeeze()
-        y_pred = np.random.choice(np.arange(len(prob)), p=prob)
-        # y_pred = np.argmax(prob, axis=0)
-        y_one_hot = to_categorical(y_pred, num_classes=n_classes)
-        predictions.append(y_pred)
-        random_music = np.insert(random_music, 32, y_one_hot, axis=0)
+        if config.GREEDY_CHOICE:
+            y_pred = np.argmax(prob, axis=0)
+        else:
+            y_pred = np.random.choice(np.arange(len(prob)), p=prob)
+        if config.ONE_HOT:
+            y_one_hot = to_categorical(y_pred, num_classes=n_classes)
+            random_music = np.insert(random_music, 32, y_one_hot, axis=0)
+        else:
+            random_music = np.insert(random_music, 32, y_pred, axis=0)
         random_music = random_music[1:]
+        predictions.append(y_pred)
 
     return predictions
 

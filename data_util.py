@@ -1,5 +1,5 @@
 import numpy as np
-
+from tensorflow.keras.utils import to_categorical
 
 class DataUtil:
     def __init__(self):
@@ -31,3 +31,10 @@ class DataUtil:
 
         self.index_to_elem = {v: k for k, v in self.elem_to_index.items()}
         return np.array(new_x), np.array(new_y)
+
+    def one_hot(self, x, y, n_notes):
+        x = x.reshape((x.shape[0], x.shape[1], 1))
+        y = y.reshape((y.shape[0]))
+        x = to_categorical(x, num_classes=n_notes)
+        y = to_categorical(y, num_classes=n_notes)
+        return x, y

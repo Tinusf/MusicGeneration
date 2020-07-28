@@ -21,16 +21,16 @@ class BaseModel(ABC):
         else:
             validation_data = None
             callback_list = []
-            checkpoint_loss = callbacks.ModelCheckpoint(f"best_loss.h5",
+            checkpoint_loss = callbacks.ModelCheckpoint(config.MODEL_DIRECTORY + "best_loss.h5",
                                                         monitor='loss', save_best_only=True,
                                                         mode='min')
             callback_list.append(checkpoint_loss)
             if x_val is not None:
-                checkpoint_val_acc = callbacks.ModelCheckpoint(f"best_val_acc.h5",
+                checkpoint_val_acc = callbacks.ModelCheckpoint(config.MODEL_DIRECTORY + "best_val_acc.h5",
                                                                monitor='val_accuracy', save_best_only=True,
                                                                mode='max')
 
-                checkpoint_val_loss = callbacks.ModelCheckpoint(f"best_val_loss.h5",
+                checkpoint_val_loss = callbacks.ModelCheckpoint(config.MODEL_DIRECTORY + "best_val_loss.h5",
                                                                 monitor='val_loss', save_best_only=True,
                                                                 mode='min')
                 callback_list.append(checkpoint_val_acc)

@@ -55,11 +55,15 @@ def read_midi(file: str) -> np.ndarray:
     return np.array(notes)
 
 
-def get_frequent_notes(notes: np.ndarray) -> list:
+def get_frequency_dict(notes: np.ndarray) -> dict:
     # Flatten the notes array.
     notes_1d = [element for note_ in notes for element in note_]
     # Frequency dictionary.
-    freq = dict(Counter(notes_1d))
+    return dict(Counter(notes_1d))
+
+
+def get_frequent_notes(notes: np.ndarray) -> list:
+    freq = get_frequency_dict(notes)
     # Return the notes that have a count of 50 or above.
     return [note_ for note_, count in freq.items() if count >= 50]
 

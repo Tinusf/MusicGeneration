@@ -10,10 +10,14 @@ from models.WaveNet import WaveNet
 
 def main():
     notes_array = music_util.load_all_midi_files()
-    frequent_notes = music_util.get_frequent_notes(notes_array)
-    n_notes = len(frequent_notes) + 1
+
     if config.FILTER_INFREQUENTLY:
+        frequent_notes = music_util.get_frequent_notes(notes_array)
+        n_notes = len(frequent_notes) + 1
         notes_array = music_util.filter_frequent_notes(notes_array, frequent_notes)
+    else:
+        freq = music_util.get_frequency_dict(notes_array)
+        n_notes = len(freq) + 1
 
     x, y = music_util.create_training_dataset(notes_array)
     # Because this dataset is a mix of string like "A4" and sequenes like "2-5-9" we need to transform them
@@ -39,7 +43,7 @@ def main():
     music_util.convert_to_midi(random_melody)
 
 
-def generate_random(model, x_test, n_classes, no_of_timesteps=32):
+def generate_random(model, x_test, n_classes):
     ind = np.random.randint(0, len(x_test) - 1)
     random_music = x_test[ind]
     predictions = []

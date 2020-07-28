@@ -11,5 +11,7 @@ class LSTM(BaseModel):
         model.add(keras.layers.Activation("relu"))
         model.add(keras.layers.Dense(n_notes))
         model.add(keras.layers.Activation("softmax"))
-        model.compile(loss=keras.losses.categorical_crossentropy, optimizer="adam")
+        optimizer = keras.optimizers.Adam(lr=0.01)
+        model.compile(loss=keras.losses.categorical_crossentropy,
+                      optimizer=optimizer, metrics=["accuracy"])
         self.model = model

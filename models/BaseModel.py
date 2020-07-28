@@ -25,7 +25,7 @@ class BaseModel(ABC):
                                                         monitor='loss', save_best_only=True,
                                                         mode='min')
             callback_list.append(checkpoint_loss)
-            if x_val:
+            if x_val is not None:
                 checkpoint_val_acc = callbacks.ModelCheckpoint(f"best_val_acc.h5",
                                                                monitor='val_accuracy', save_best_only=True,
                                                                mode='max')

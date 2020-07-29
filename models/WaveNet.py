@@ -29,7 +29,7 @@ class WaveNet(BaseModel):
         model.add(keras.layers.Dense(256, activation="relu"))
         model.add(keras.layers.Dense(n, activation="softmax"))
 
-        model.compile(loss=keras.losses.sparse_categorical_crossentropy, optimizer="adam")
+        model.compile(loss=keras.losses.sparse_categorical_crossentropy, optimizer="adam", metrics=["accuracy"])
 
         model.summary()
         self.model = model

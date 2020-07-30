@@ -113,16 +113,19 @@ def convert_to_midi(prediction_output):
 
         # pattern is a chord
         if ('.' in pattern) or pattern.isdigit():
+            pass
             notes_in_chord = pattern.split('.')
             notes = []
             for current_note in notes_in_chord:
                 cn = int(current_note)
                 new_note = note.Note(cn)
-                new_note.storedInstrument = instrument.Piano()
+                new_note.offset = offset
+                # output_notes.append(cur_instrument)
                 notes.append(new_note)
 
             new_chord = chord.Chord(notes)
             new_chord.offset = offset
+            output_notes.append(cur_instrument)
             output_notes.append(new_chord)
 
         # pattern is a note

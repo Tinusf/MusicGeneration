@@ -13,11 +13,11 @@ def main():
 
     if config.FILTER_INFREQUENTLY:
         frequent_notes = music_util.get_frequent_notes(notes_array)
-        n_notes = len(frequent_notes) + 1
+        n_notes = len(frequent_notes)
         notes_array = music_util.filter_frequent_notes(notes_array, frequent_notes)
     else:
         freq = music_util.get_frequency_dict(notes_array)
-        n_notes = len(freq) + 1
+        n_notes = len(freq)
 
     x, y = music_util.create_training_dataset(notes_array)
     # Because this dataset is a mix of string like "A4" and sequenes like "2-5-9" we need to transform them
@@ -37,20 +37,53 @@ def main():
 
     model.train_if_necessary(x_train, y_train, x_test, y_test)
 
-    random_melody = generate_random(model.model, x_test, n_notes)
+    random_melody = generate_random(model.model, x_test, n_notes, dataUtil)
     random_melody = [dataUtil.index_to_elem[x] for x in random_melody]
     print(random_melody)
     music_util.convert_to_midi(random_melody)
 
 
-def generate_random(model, x_test, n_classes):
+def generate_random(model, x_test, n_classes, dataUtil):
     ind = np.random.randint(0, len(x_test) - 1)
     random_music = x_test[ind]
     predictions = []
+    cur_instrument = ""
+    cur_instrument_count = 0
     for i in range(100):
         prob = model.predict(np.expand_dims(random_music, axis=0)).squeeze()
         if config.GREEDY_CHOICE:
             y_pred = np.argmax(prob, axis=0)
+            if config.SAME_INSTRUMENT_MIN_SEQUENCE_LIMIT > 0:
+                if cur_instrument_count < config.SAME_INSTRUMENT_MIN_SEQUENCE_LIMIT:
+                    note = dataUtil.index_to_elem[y_pred]
+                    instrument = "violin" if note.startswith("violin") else "piano"
+                    if instrument != cur_instrument:
+                        # Filter out other instruments.
+                        for index, note in dataUtil.index_to_elem.items():
+                            if not note.startswith(cur_instrument):
+                                prob[index] = 0
+                        # Redo the prediction with other instruments filtered out.
+                        y_pred = np.argmax(prob, axis=0)
+
+            if config.SAME_INSTRUMENT_MAX_SEQUENCE_LIMIT > 0:
+                note = dataUtil.index_to_elem[y_pred]
+                instrument = "violin" if note.startswith("violin") else "piano"
+                if instrument == cur_instrument:
+                    cur_instrument_count += 1
+                else:
+                    cur_instrument_count = 0
+                    cur_instrument = instrument
+                if cur_instrument_count >= config.SAME_INSTRUMENT_MAX_SEQUENCE_LIMIT:
+                    cur_instrument_count = 0
+                    # set probabilities of that instrument to 0.
+                    for index, note in dataUtil.index_to_elem.items():
+                        if note.startswith(cur_instrument):
+                            prob[index] = 0
+                    # Redo the prediction with one instrument filtered out.
+                    y_pred = np.argmax(prob, axis=0)
+                    note = dataUtil.index_to_elem[y_pred]
+                    cur_instrument = "violin" if note.startswith("violin") else "piano"
+
         else:
             y_pred = np.random.choice(np.arange(len(prob)), p=prob)
         if config.ONE_HOT:

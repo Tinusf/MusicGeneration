@@ -18,7 +18,7 @@ def main():
     else:
         freq = music_util.get_frequency_dict(notes_array)
         n_notes = len(freq)
-
+    print(n_notes)
     x, y = music_util.create_training_dataset(notes_array)
     # Because this dataset is a mix of string like "A4" and sequenes like "2-5-9" we need to transform them
     # to indices in order to get numbers.

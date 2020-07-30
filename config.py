@@ -7,7 +7,7 @@ SHOULD_LOAD_MODEL = True
 # Where the models are stored.
 MODEL_DIRECTORY = "saved_models/lstm/"
 # Which model within the MODEL_DIRECTORY should be used for loading and saving the model.
-MODEL_FILE = "model_pianoviolin_onesong10.h5"
+MODEL_FILE = "model_pianoviolin_onesong_final.h5"
 # Which directory the midi files are located in.
 MIDI_DIRECTORY = "data/pianoviolin/"
 # Should you just load the pickle files instead of parsing all the midi files.

@@ -49,10 +49,15 @@ def generate_random(model, x_test, n_classes, dataUtil):
     predictions = []
     cur_instrument = ""
     cur_instrument_count = 0
+    prev_note_i = None
     for i in range(100):
         prob = model.predict(np.expand_dims(random_music, axis=0)).squeeze()
         if config.GREEDY_CHOICE:
+            if config.ENFORCE_NO_DUPLICATES and prev_note_i is not None:
+                prob[prev_note_i] = 0
+
             y_pred = np.argmax(prob, axis=0)
+
             if config.SAME_INSTRUMENT_MIN_SEQUENCE_LIMIT > 0:
                 if cur_instrument_count < config.SAME_INSTRUMENT_MIN_SEQUENCE_LIMIT:
                     note = dataUtil.index_to_elem[y_pred]
@@ -83,6 +88,7 @@ def generate_random(model, x_test, n_classes, dataUtil):
                     y_pred = np.argmax(prob, axis=0)
                     note = dataUtil.index_to_elem[y_pred]
                     cur_instrument = "violin" if note.startswith("violin") else "piano"
+            prev_note_i = y_pred
 
         else:
             y_pred = np.random.choice(np.arange(len(prob)), p=prob)

@@ -20,8 +20,8 @@ ONE_HOT = True
 # in order to get some random notes.
 GREEDY_CHOICE = True
 # Do not predict the same note twice in a row.
-ENFORCE_NO_DUPLICATES = False
+ENFORCE_NO_DUPLICATES = True
 # How many notes in a row can be the same instrument. Set to -1 to disable.
-SAME_INSTRUMENT_MAX_SEQUENCE_LIMIT = 5
+SAME_INSTRUMENT_MAX_SEQUENCE_LIMIT = 16
 # How many notes in a row needs to be the same instrument. seg to -1 to disable.
-SAME_INSTRUMENT_MIN_SEQUENCE_LIMIT = 5
+SAME_INSTRUMENT_MIN_SEQUENCE_LIMIT = 8

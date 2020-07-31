@@ -35,6 +35,6 @@ class DataUtil:
     def one_hot(self, x, y, n_notes):
         x = x.reshape((x.shape[0], x.shape[1], 1))
         y = y.reshape((y.shape[0]))
-        x = to_categorical(x, num_classes=n_notes)
-        y = to_categorical(y, num_classes=n_notes)
+        x = to_categorical(x - 1, num_classes=n_notes)
+        y = to_categorical(y - 1, num_classes=n_notes)
         return x, y

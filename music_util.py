@@ -223,7 +223,20 @@ def convert_to_midi(prediction_output):
         offset += 1
 
     song = stream.Stream()
-    song.insert(output_notes_piano)
-    song.insert(output_notes_violin)
+
+    # This was an attempt to fix that you can play both instruments at the same time, it doesn't work.
+    for piano_note in output_notes_piano.notes:
+        song.insert(piano_note.offset, piano_note)
+        song.insert(piano_note.offset, instrument.Piano())
+
+    for violin_note in output_notes_violin.notes:
+        song.insert(violin_note.offset, violin_note)
+        song.insert(violin_note.offset, instrument.Violin())
+
+    # This however, works good. You can write out the piano and violin to differnet files and convert
+    # them to mp3 using https://audio.online-convert.com/convert/midi-to-mp3.
+    # And then combine the two mp3 using audacity.
+    output_notes_piano.write('midi', fp='piano.mid')
+    output_notes_violin.write('midi', fp='violin.mid')
     song = song.flat
     song.write('midi', fp='music.mid')

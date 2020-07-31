@@ -5,7 +5,6 @@ import numpy as np
 import music_util
 from sklearn.model_selection import train_test_split
 from models.LSTM import LSTM
-from models.WaveNet import WaveNet
 
 
 def main():
@@ -28,9 +27,7 @@ def main():
         x, y = dataUtil.one_hot(x, y, n_notes)
 
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
-    if config.WHICH_MODEL == "WaveNet":
-        model = WaveNet(n_notes)
-    elif config.WHICH_MODEL == "LSTM":
+    if config.WHICH_MODEL == "LSTM":
         model = LSTM(n_notes)
     else:
         raise ValueError(config.WHICH_MODEL + " is not supported.")

@@ -120,6 +120,16 @@ def convert_to_midi(prediction_output):
         n_pianos = pattern.count("piano")
         n_violins = pattern.count("violin")
         diff = n_pianos - n_violins
+        merge_to_chord = False
+        to_be_merged = []
+        if n_pianos > 0 and n_violins == 0:
+            # Then we merge the pianos into a chord.
+            diff = 1
+            merge_to_chord = True
+        elif n_violins > 0 and n_pianos == 0:
+            diff = -1
+            merge_to_chord = True
+
         while pattern != "":
             cur_instrument = None
             cur_instrument_str = ""
@@ -151,19 +161,24 @@ def convert_to_midi(prediction_output):
                     new_note = note.Note(cn)
                     new_note.offset = offset
                     new_note.storedInstrument = cur_instrument
-                    notes.append(new_note)
+                    if merge_to_chord:
+                        to_be_merged.append(new_note)
+                    else:
+                        notes.append(new_note)
 
                 new_chord = chord.Chord(notes)
                 new_chord.offset = offset
                 if cur_instrument_str == "piano":
-                    output_notes_piano.append(cur_instrument)
-                    output_notes_piano.append(new_chord)
+                    if not merge_to_chord:
+                        output_notes_piano.append(cur_instrument)
+                        output_notes_piano.append(new_chord)
                     if diff > 0:
                         output_notes_violin.append(note.Rest())
                         diff -= 1
                 else:
-                    output_notes_violin.append(cur_instrument)
-                    output_notes_violin.append(new_chord)
+                    if not merge_to_chord:
+                        output_notes_violin.append(cur_instrument)
+                        output_notes_violin.append(new_chord)
                     if diff < 0:
                         output_notes_piano.append(note.Rest())
                         diff += 1
@@ -174,17 +189,37 @@ def convert_to_midi(prediction_output):
                 new_note.offset = offset
                 new_note.storedInstrument = cur_instrument
                 if cur_instrument_str == "piano":
-                    output_notes_piano.append(cur_instrument)
-                    output_notes_piano.append(new_note)
+                    if merge_to_chord:
+                        to_be_merged.append(new_note)
+                    else:
+                        output_notes_piano.append(cur_instrument)
+                        output_notes_piano.append(new_note)
                     if diff > 0:
                         output_notes_violin.append(note.Rest())
                         diff -= 1
                 else:
-                    output_notes_violin.append(cur_instrument)
-                    output_notes_violin.append(new_note)
+                    if merge_to_chord:
+                        to_be_merged.append(new_note)
+                    else:
+                        output_notes_violin.append(cur_instrument)
+                        output_notes_violin.append(new_note)
                     if diff < 0:
                         output_notes_piano.append(note.Rest())
                         diff += 1
+
+        if len(to_be_merged) > 0:
+            new_chord = chord.Chord(to_be_merged)
+            new_chord.offset = offset
+            print("skjer dette")
+            if cur_instrument_str == "piano":
+                output_notes_piano.append(cur_instrument)
+                output_notes_piano.append(new_chord)
+            elif cur_instrument_str == "violin":
+                output_notes_violin.append(cur_instrument)
+                output_notes_violin.append(new_chord)
+            else:
+                raise ValueError("Instrument not supported.")
+
         offset += 1
 
     song = stream.Stream()

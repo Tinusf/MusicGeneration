@@ -210,7 +210,6 @@ def convert_to_midi(prediction_output):
         if len(to_be_merged) > 0:
             new_chord = chord.Chord(to_be_merged)
             new_chord.offset = offset
-            print("skjer dette")
             if cur_instrument_str == "piano":
                 output_notes_piano.append(cur_instrument)
                 output_notes_piano.append(new_chord)
